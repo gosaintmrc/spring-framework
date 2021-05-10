@@ -79,12 +79,15 @@ public class AnnotatedBeanDefinitionReader {
 	 * @param environment the {@code Environment} to use when evaluating bean definition
 	 * profiles.
 	 * @since 3.1
+	 * 这里的BeanDefinitionRegistry 就是AnnotationConfigApplicationContext
 	 */
 	public AnnotatedBeanDefinitionReader(BeanDefinitionRegistry registry, Environment environment) {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 		Assert.notNull(environment, "Environment must not be null");
 		this.registry = registry;
+		//它的作用是按照一定的条件进行判断，需要注入的Bean满足给定条件才可以注入到Spring IOC容器中。一般使用@Conditional注解配置
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
+		//注册注解配置处理器
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
 	}
 
@@ -249,17 +252,20 @@ public class AnnotatedBeanDefinitionReader {
 	private <T> void doRegisterBean(Class<T> beanClass, @Nullable String name,
 			@Nullable Class<? extends Annotation>[] qualifiers, @Nullable Supplier<T> supplier,
 			@Nullable BeanDefinitionCustomizer[] customizers) {
-
+		//1 创建了通用的bean定义实例。
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass);
 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
+			//2 这里判断要不要将该bean添加到IOC容器当中。一般和@Conditional注解有关
 			return;
 		}
 
 		abd.setInstanceSupplier(supplier);
 		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
+		//3 scopeMetadata.getScopeName()=singleton 在这里设置了单例模式。默认为单例
 		abd.setScope(scopeMetadata.getScopeName());
+		//4 获取bean的名称，默认首字母小写
 		String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry));
-
+		//这里对bean做一些处理。设置是否懒加载、是否私有、设置依赖关系、设置bean角色以及bean的描述。此时的设置保存在abd中
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
 		if (qualifiers != null) {
 			for (Class<? extends Annotation> qualifier : qualifiers) {
@@ -279,8 +285,9 @@ public class AnnotatedBeanDefinitionReader {
 				customizer.customize(abd);
 			}
 		}
-
+		//创建bean定义持有者。bean的描述
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
+		//根据bean的作用域设置代理模式，获取代理之后的definitionHolder。
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
 		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry);
 	}

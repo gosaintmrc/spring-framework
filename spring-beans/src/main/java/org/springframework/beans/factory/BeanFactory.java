@@ -213,7 +213,7 @@ public interface BeanFactory {
 	 * of instances, including availability and uniqueness options.
 	 * @param requiredType type the bean must match; can be an interface or superclass
 	 * @return a corresponding provider handle
-	 * @since 5.1
+	 * @since 5.1NoSuchBeanDefinitionException
 	 * @see #getBeanProvider(ResolvableType)
 	 */
 	<T> ObjectProvider<T> getBeanProvider(Class<T> requiredType);

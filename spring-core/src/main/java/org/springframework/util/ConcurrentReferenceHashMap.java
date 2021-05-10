@@ -54,7 +54,7 @@ import org.springframework.lang.Nullable;
  * <p>If not explicitly specified, this implementation will use
  * {@linkplain SoftReference soft entry references}.
  *
- * @author Phillip Webb
+ * @author Phillip WebbAssert
  * @author Juergen Hoeller
  * @since 3.2
  * @param <K> the key type
